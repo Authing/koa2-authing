@@ -14,7 +14,25 @@ module.exports = function (options) {
                 try {
                     await next()
                 } catch (e) {
-                    console.log(e)
+                    console.log(e);
+                    if(e.message && e.message.code === 2206) {
+                        try {
+                            validAuth = await new Authing({
+                                clientId: options.clientId,
+                                secret: options.secret
+                            });
+                            ctx.request.authing = validAuth;
+                            try {
+                                await next()
+                            } catch(e) {
+                                console.log('下游逻辑错误');
+                                console.log(e);
+                            }
+                        } catch (e) {
+                            console.log('刷新 validAuth 失败');
+                            console.log(e);
+                        }
+                    }
                 }
             } catch (e) {
                 validAuth = null;
